@@ -1,0 +1,22 @@
+
+version: '3.8'
+
+services:
+  whisper:
+    image: ghcr.io/ggerganov/whisper.cpp:latest
+    command: ["--model", "tiny.en", "--language", "en"]
+    ports:
+      - "9000:9000"
+
+  kittentts:
+    image: ghcr.io/coqui-ai/kitty-tts:latest
+    ports:
+      - "5002:5002"
+
+  app:
+    build: .
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    network_mode: host

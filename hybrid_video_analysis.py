@@ -5,6 +5,8 @@ import glob
 import requests
 import json
 from dotenv import load_dotenv
+from pydub import AudioSegment
+from pydub.playback import play
 
 load_dotenv()
 
@@ -47,8 +49,16 @@ def call_gpt(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
+def tts_kittentts(text, outfile="response.wav"):
+    r = requests.post("http://localhost:5002/api/tts", json={"text": text})
+    r.raise_for_status()
+    with open(outfile, "wb") as f:
+        f.write(r.content)
+    audio = AudioSegment.from_file(outfile, format="wav")
+    play(audio)
+
 if __name__ == "__main__":
-    video_file = "sample.mp4"  # replace with your video file
+    video_file = "sample.mp4"
     print("🎥 Extracting audio...")
     audio_file = extract_audio(video_file)
 
@@ -60,7 +70,7 @@ if __name__ == "__main__":
 
     print("🖼 Captioning frames...")
     captions = []
-    for frame in frames[:5]:  # limit to 5 frames for demo
+    for frame in frames[:5]:
         cap = caption_image(frame)
         captions.append(cap)
 
@@ -71,3 +81,6 @@ if __name__ == "__main__":
     print("🤖 Calling GPT...")
     summary = call_gpt(combined_prompt)
     print("Summary:", summary)
+
+    print("🔊 Converting GPT summary to speech...")
+    tts_kittentts(summary)
